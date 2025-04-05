@@ -6,36 +6,28 @@ import { Character, CharacterFilters, CharacterResponse } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { Search, Filter, AlertTriangle } from 'lucide-react';
 
-// Skeleton card component for loading state
 const SkeletonCard = () => (
   <div className="bg-gray-800/70 rounded-xl border border-gray-700/50 overflow-hidden h-full">
-    {/* Skeleton image */}
     <div className="w-full aspect-square bg-gray-700/50 animate-pulse"></div>
-    
-    {/* Skeleton content */}
+
     <div className="p-4 space-y-3">
-      {/* Name */}
       <div className="h-6 bg-gray-700/70 rounded-md w-3/4 animate-pulse"></div>
-      
-      {/* Status and species */}
+
       <div className="flex items-center space-x-2">
         <div className="w-3 h-3 bg-gray-700 rounded-full animate-pulse"></div>
         <div className="h-4 bg-gray-700/70 rounded-md w-1/2 animate-pulse"></div>
       </div>
-      
-      {/* Location */}
+
       <div className="pt-2">
         <div className="h-3 bg-gray-700/50 rounded-md w-1/3 mb-1 animate-pulse"></div>
         <div className="h-4 bg-gray-700/70 rounded-md w-4/5 animate-pulse"></div>
       </div>
-      
-      {/* Origin */}
+
       <div className="pt-2">
         <div className="h-3 bg-gray-700/50 rounded-md w-1/3 mb-1 animate-pulse"></div>
         <div className="h-4 bg-gray-700/70 rounded-md w-3/4 animate-pulse"></div>
       </div>
-      
-      {/* Button placeholder */}
+
       <div className="flex justify-between pt-2">
         <div className="h-8 bg-gray-700/70 rounded-md w-2/3 animate-pulse"></div>
         <div className="h-8 w-8 bg-gray-700/70 rounded-full animate-pulse"></div>
@@ -61,10 +53,8 @@ export function CharacterList() {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [filtersVisible, setFiltersVisible] = useState(false);
 
-  // Number of skeleton cards to show during loading
   const skeletonCount = 12;
 
-  // Memoize debounced filters
   const debouncedFilters = useMemo(() => {
     setTimeout(() => {
       return filters;
@@ -72,7 +62,6 @@ export function CharacterList() {
     return filters;
   }, [filters]);
 
-  // Fetch characters function with better error handling
   const fetchCharacters = useCallback(async () => {
     if (showFavoritesOnly && favorites.length === 0) {
       setCharacters([]);
@@ -84,8 +73,7 @@ export function CharacterList() {
 
     try {
       setLoading(true);
-      
-      // Construct query parameters
+
       const queryParams = new URLSearchParams({
         page: currentPage.toString(),
         ...(debouncedFilters.name && { name: debouncedFilters.name }),
@@ -94,19 +82,13 @@ export function CharacterList() {
         ...(debouncedFilters.gender && { gender: debouncedFilters.gender }),
       });
 
-      // If showing favorites only, we need a different approach
       if (showFavoritesOnly) {
-        // For favorites, we need to get all characters in the favorites array
-        // This is a limitation of the API - we can't filter by multiple IDs in one request
-        // So for simplicity in this example, we'll just fetch the first 20 favorites
-        // A production app would need pagination for favorites as well
         const favoritesToFetch = favorites.slice(0, 20);
         if (favoritesToFetch.length > 0) {
           const response = await fetch(
             `https://rickandmortyapi.com/api/character/${favoritesToFetch.join(',')}`
           );
           const data = await response.json();
-          // Handle both array and single object responses
           const results = Array.isArray(data) ? data : [data];
           setCharacters(results);
           setTotalPages(1);
@@ -123,7 +105,6 @@ export function CharacterList() {
         
         if (!response.ok) {
           if (response.status === 404) {
-            // Handle 404 - no results found
             setCharacters([]);
             setTotalPages(0);
             setTotalResults(0);
@@ -150,18 +131,15 @@ export function CharacterList() {
     }
   }, [currentPage, debouncedFilters, showFavoritesOnly, favorites]);
 
-  // Fetch characters when dependencies change
   useEffect(() => {
     fetchCharacters();
   }, [fetchCharacters]);
 
-  // Handle filter changes
   const handleFilterChange = useCallback((newFilters: CharacterFilters) => {
     setFilters(newFilters);
-    setCurrentPage(1); // Reset to first page when filters change
+    setCurrentPage(1);
   }, []);
 
-  // Toggle favorite status
   const toggleFavorite = useCallback((character: Character) => {
     setFavorites((prev) =>
       prev.includes(character.id)
@@ -170,17 +148,14 @@ export function CharacterList() {
     );
   }, [setFavorites]);
 
-  // Toggle filters visibility for mobile
   const toggleFilters = useCallback(() => {
     setFiltersVisible(prev => !prev);
   }, []);
 
-  // Calculate if any filters are active
   const hasActiveFilters = useMemo(() => {
     return Object.values(filters).some(value => value !== '');
   }, [filters]);
 
-  // Clear all filters
   const clearFilters = useCallback(() => {
     setFilters({
       name: '',
@@ -190,15 +165,13 @@ export function CharacterList() {
     });
   }, []);
 
-  // Toggle favorite-only view
   const toggleFavoritesOnly = useCallback(() => {
     setShowFavoritesOnly(prev => !prev);
-    setCurrentPage(1); // Reset to first page
+    setCurrentPage(1);
   }, []);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* Header with title and action buttons */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-6">
         <h1 className="text-4xl font-bold text-green-400 mb-4 md:mb-0">Rick & Morty Characters</h1>
         
@@ -236,7 +209,6 @@ export function CharacterList() {
         </div>
       </div>
 
-      {/* Filters section - collapsible on mobile */}
       <div className={`bg-gray-800/70 rounded-xl border border-gray-700/50 backdrop-blur-md mb-6 transition-all overflow-hidden ${
         filtersVisible ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 hidden md:block md:max-h-96 md:opacity-100'
       }`}>
@@ -258,8 +230,7 @@ export function CharacterList() {
           <Filters filters={filters} onFilterChange={handleFilterChange} />
         </div>
       </div>
-      
-      {/* Results stats */}
+
       <div className="flex justify-between items-center mb-6">
         <div className="text-gray-400">
           {!loading && totalResults > 0 ? (
@@ -271,8 +242,7 @@ export function CharacterList() {
           )}
           {showFavoritesOnly && ' (favorites only)'}
         </div>
-        
-        {/* Small screen filters toggle */}
+
         <button 
           className="md:hidden text-green-400 hover:text-green-300 transition-colors"
           onClick={toggleFilters}
@@ -281,7 +251,6 @@ export function CharacterList() {
         </button>
       </div>
 
-      {/* Error state */}
       {error && (
         <div className="bg-red-900/20 rounded-xl border border-red-700/50 backdrop-blur-md p-6 text-center mb-6">
           <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
@@ -296,15 +265,12 @@ export function CharacterList() {
         </div>
       )}
 
-      {/* Character grid - Shows either skeleton loading or actual cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
         {loading ? (
-          // Skeleton loading cards
           Array(skeletonCount).fill(0).map((_, index) => (
             <SkeletonCard key={`skeleton-${index}`} />
           ))
         ) : characters.length > 0 ? (
-          // Actual character cards
           characters.map((character) => (
             <CharacterCard
               key={character.id}
@@ -314,7 +280,6 @@ export function CharacterList() {
             />
           ))
         ) : (
-          // Empty state - no characters found
           <div className="col-span-full bg-gray-800/70 rounded-xl border border-gray-700/50 backdrop-blur-md p-10 text-center">
             <div className="text-gray-400 text-6xl mb-4">🔍</div>
             <h2 className="text-2xl font-bold text-gray-300 mb-2">No Characters Found</h2>
@@ -335,7 +300,6 @@ export function CharacterList() {
         )}
       </div>
 
-      {/* Pagination - only show when not loading and we have multiple pages */}
       {!loading && totalPages > 1 && (
         <div className="mt-8">
           <Pagination
